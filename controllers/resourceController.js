@@ -13,9 +13,11 @@ const createResourcePost = asyncHandler(async (req, res) => {
 
     const images = [];
     if (req.files && req.files.length > 0) {
+        console.log(`Processing ${req.files.length} images...`);
         for (const file of req.files) {
             const fileName = `resource-${Date.now()}-${Math.floor(Math.random() * 1000)}${path.extname(file.originalname)}`;
 
+            console.log(`Uploading ${fileName} to Supabase...`);
             const { data, error: uploadError } = await supabase.storage
                 .from('resources')
                 .upload(fileName, file.buffer, {
@@ -24,14 +26,15 @@ const createResourcePost = asyncHandler(async (req, res) => {
                 });
 
             if (uploadError) {
-                console.error('Supabase Storage Upload Error:', uploadError);
-                continue;
+                console.error('Supabase Storage Upload Error details:', JSON.stringify(uploadError, null, 2));
+                throw new Error(`Failed to upload image ${file.originalname}: ${uploadError.message || 'Check if "resources" bucket exists'}`);
             }
 
             const { data: { publicUrl } } = supabase.storage
                 .from('resources')
                 .getPublicUrl(fileName);
 
+            console.log(`Success! Public URL: ${publicUrl}`);
             images.push(publicUrl);
         }
     }
