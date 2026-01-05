@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doner Web Application - Stop Wastage</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="container navbar">
+            <div class="logo">ServeLimitless</div>
+            <nav id="nav-menu" class="nav-links">
+                <!-- Links will be injected by JS based on auth status -->
+                <a href="auth.html?mode=login">Login</a>
+                <a href="auth.html?mode=signup">Sign Up</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h1>What do you need?</h1>
+            <p>Connect with donors to reduce wastage and help the community.</p>
+
+            <div class="categories">
+                <div class="category-card" onclick="selectCategory('Food')">
+                    <span class="category-icon">🍲</span>
+                    <h3>Food</h3>
+                </div>
+                <div class="category-card" onclick="selectCategory('Clothes')">
+                    <span class="category-icon">👕</span>
+                    <h3>Clothes</h3>
+                </div>
+                <div class="category-card" onclick="selectCategory('Toys')">
+                    <span class="category-icon">🧸</span>
+                    <h3>Toys</h3>
+                </div>
+                <div class="category-card" onclick="selectCategory('Books')">
+                    <span class="category-icon">📚</span>
+                    <h3>Books</h3>
+                </div>
+                <div class="category-card" onclick="selectCategory('Others')">
+                    <span class="category-icon">📦</span>
+                    <h3>Others</h3>
+                </div>
+            </div>
+
+            <div id="food-subcategories">
+                <h2>Select Food Type</h2>
+                <div class="categories">
+                    <div class="category-card" onclick="selectFoodType('Vegetarian')">
+                        <span class="category-icon">🥬</span>
+                        <h3>Vegetarian</h3>
+                    </div>
+                    <div class="category-card" onclick="selectFoodType('Non-Vegetarian')">
+                        <span class="category-icon">🍗</span>
+                        <h3>Non-Vegetarian</h3>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Doner Web App. All rights reserved.</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script>
+        function selectCategory(category) {
+            if (category === 'Food') {
+                document.getElementById('food-subcategories').style.display = 'block';
+                document.getElementById('food-subcategories').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                // Determine user role and redirect
+                const token = localStorage.getItem('token');
+                const role = localStorage.getItem('role');
+
+                if (token && role === 'donor') {
+                    window.location.href = `donor-dashboard.html?category=${category}`;
+                } else if (token && role === 'receiver') {
+                    window.location.href = `receiver-dashboard.html?type=${category}`;
+                } else if (!token) {
+                    // Not logged in -> Go to Auth
+                    window.location.href = 'auth.html';
+                }
+            }
+        }
+
+        function selectFoodType(type) {
+            // Check auth in app.js or here, if logged in go to dashboard with filter
+            // otherwise go to login
+            const token = localStorage.getItem('token');
+            const role = localStorage.getItem('role');
+
+            if (token && role === 'receiver') {
+                window.location.href = `receiver-dashboard.html?type=${type}`;
+            } else if (token && role === 'donor') {
+                // Donors shouldn't really be clicking this but redirect anyway or alert
+                window.location.href = `donor-dashboard.html`;
+            } else {
+                // Not logged in
+                localStorage.setItem('redirectAfterLogin', `receiver-dashboard.html?type=${type}`);
+                window.location.href = 'auth.html?mode=login';
+            }
+        }
+    </script>
+</body>
+
+</html>
