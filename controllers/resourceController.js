@@ -1,4 +1,5 @@
 const asyncHandler = require('express-async-handler');
+const path = require('path');
 const supabase = require('../config/supabase');
 
 // @desc    Create new resource post
@@ -10,8 +11,30 @@ const createResourcePost = asyncHandler(async (req, res) => {
 
     const { category, itemName, description, quantity, location, contactPhone } = req.body;
 
-    // Files are in req.files
-    const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+    const images = [];
+    if (req.files && req.files.length > 0) {
+        for (const file of req.files) {
+            const fileName = `resource-${Date.now()}-${Math.floor(Math.random() * 1000)}${path.extname(file.originalname)}`;
+
+            const { data, error: uploadError } = await supabase.storage
+                .from('resources')
+                .upload(fileName, file.buffer, {
+                    contentType: file.mimetype,
+                    upsert: false
+                });
+
+            if (uploadError) {
+                console.error('Supabase Storage Upload Error:', uploadError);
+                continue;
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('resources')
+                .getPublicUrl(fileName);
+
+            images.push(publicUrl);
+        }
+    }
 
     if (!category || !itemName || !quantity || !location || !contactPhone) {
         res.status(400);
